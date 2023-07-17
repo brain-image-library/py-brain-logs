@@ -17,6 +17,9 @@ with open('data/access.log', 'r') as file:
             'size': fields[9]
         }
 
+        dataset['is_bot'] = 'bot' in line and 'bot' not in dataset['url']
+
+
         data.append(dataset)
 
 
