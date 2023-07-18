@@ -1,26 +1,45 @@
+import re
+from datetime import datetime
+
 import pandas as pd
 
-from datetime import datetime
+methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
+pattern = r'^([\d.]+) - - \[([^]]+)\] "([^"]*)" (\d+) (\d+) "([^"]*)" "([^"]*)" "-"$'
 
 with open('data/access.log', 'r') as file:
     data = []
-    for line in file.readlines():
-        # Split the log entry based on spaces
-        fields = line.split(' ')
+    lines = file.readlines()
 
-        dataset = {
-            'ip': fields[0],
-            'date': datetime.strptime(fields[3].lstrip('[') + fields[4].strip(']'), '%d/%b/%Y:%H:%M:%S%z'),
-            'method': fields[5].strip('').strip('"'),
-            'url': fields[6],
-            'status_code': fields[8],
-            'size': fields[9]
-        }
+    for line in lines:
+        matches = re.match(pattern, line)
+        if matches:
+            ip_address = matches.group(1)
+            timestamp = matches.group(2)
+            request_line = matches.group(3)
+            status_code = matches.group(4)
+            size = matches.group(5)
+            referrer = matches.group(6)
+            user_agent = matches.group(7)
 
-        dataset['is_bot'] = 'bot' in line and 'bot' not in dataset['url']
+            split_request = request_line.split(' ')
 
+            method = split_request[0] if split_request[0] in methods else ""
+            url = split_request[1] if split_request[0] in methods else split_request[0]
 
-        data.append(dataset)
+            dataset = {
+                "ip": ip_address,
+                "date": datetime.strptime(timestamp, '%d/%b/%Y:%H:%M:%S %z'),
+                "method": method,
+                "url": url,
+                "status_code": status_code,
+                "size": size,
+                "referrer": referrer,
+                "user_agent": user_agent,
+                "is_bot": 'bot' in user_agent.lower()
+            }
 
+            data.append(dataset)
+        else:
+            print("No match found.")
 
 df = pd.DataFrame(data)
