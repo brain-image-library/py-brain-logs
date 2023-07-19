@@ -3,6 +3,37 @@ from datetime import datetime
 
 import pandas as pd
 
+
+def __get_bot_names(df, normalize=False):
+    """
+    Get a frequency dictionary of bot requests
+    """
+    pattern = re.compile(r"([A-Za-z]+bot)\b", re.IGNORECASE)
+    bot_names = {}
+
+    # Find all user agents that contain the word "bot" case-insensitive
+    mask = df["user_agent"].str.lower().str.contains("bot")
+
+    for agent in df[mask]["user_agent"]:
+        match = pattern.search(agent)
+        if match:
+            bot_name = match.group(1)
+            if bot_name not in bot_names:
+                bot_names[bot_name] = 0
+            else:
+                bot_names[bot_name] += 1
+
+    # Convert the numbers into percentages that add up to 1 if noted.
+    if normalize:
+        total = sum(bot_names.values())
+
+        for name in bot_names:
+            bot_names[name] = round(bot_names[name] / total, 5)
+
+    # Sort by the frequency in descending order
+    return dict(sorted(bot_names.items(), key=lambda item: item[1], reverse=True))
+
+
 methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
 pattern = r'^([\d.]+) - - \[([^]]+)\] "([^"]*)" (\d+) (\d+) "([^"]*)" "([^"]*)" "-"$'
 
@@ -43,33 +74,3 @@ with open("data/access.log", "r") as file:
             print("No match found.")
 
 df = pd.DataFrame(data)
-
-
-def __get_bot_names(df, normalize=False):
-    """
-    Get a frequency dictionary of bot requests
-    """
-    pattern = re.compile(r"([A-Za-z]+bot)\b", re.IGNORECASE)
-    bot_names = {}
-
-    # Find all user agents that contain the word "bot" case-insensitive
-    mask = df["user_agent"].str.lower().str.contains("bot")
-
-    for agent in df[mask]["user_agent"]:
-        match = pattern.search(agent)
-        if match:
-            bot_name = match.group(1)
-            if bot_name not in bot_names:
-                bot_names[bot_name] = 0
-            else:
-                bot_names[bot_name] += 1
-
-    # Convert the numbers into percentages that add up to 1 if noted.
-    if normalize:
-        total = sum(bot_names.values())
-
-        for name in bot_names:
-            bot_names[name] = round(bot_names[name] / total, 5)
-
-    # Sort by the frequency in descending order
-    return dict(sorted(bot_names.items(), key=lambda item: item[1], reverse=True))
