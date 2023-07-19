@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 
 import pandas as pd
+from matplotlib import pyplot as plt
 
 methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
 pattern = r'^([\d.]+) - - \[([^]]+)\] "([^"]*)" (\d+) (\d+) "([^"]*)" "([^"]*)" "-"$'
@@ -43,3 +44,27 @@ with open("data/access.log", "r") as file:
             print("No match found.")
 
 df = pd.DataFrame(data)
+
+
+def __get_date_count(df):
+    # Create a frequency of days and requests (e.g. datetime.date(2022, 5, 16): 12337
+    return df["date"].apply(lambda dt: dt.date()).value_counts().sort_index()
+
+
+def __get_date_chart(df):
+    """
+    Create a chart that will showcase the amount of requests per day.
+    """
+    frequencies = __get_date_count(df)
+
+    # Create the bar chart
+    plt.bar(frequencies.index, frequencies.values)
+    plt.xlabel("Date")
+    plt.ylabel("Number of Requests")
+    plt.title("Number of Requests per Day")
+    plt.xticks(rotation=45)
+
+    # Display the chart
+    plt.margins(0.05)
+    plt.tight_layout()
+    plt.show()
