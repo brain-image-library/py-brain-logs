@@ -43,3 +43,10 @@ with open("data/access.log", "r") as file:
             print("No match found.")
 
 df = pd.DataFrame(data)
+
+
+def __get_404_response_count(df):
+    """
+    Provide the total amount of requests that have a '404' not found status code.
+    """
+    return len(df[df["status_code"] == "404"])
