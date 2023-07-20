@@ -3,6 +3,14 @@ from datetime import datetime
 
 import pandas as pd
 
+
+def __get_404_response_count(df):
+    """
+    Provide the total amount of requests that have a '404' not found status code.
+    """
+    return len(df[df["status_code"] == "404"])
+
+
 methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
 pattern = r'^([\d.]+) - - \[([^]]+)\] "([^"]*)" (\d+) (\d+) "([^"]*)" "([^"]*)" "-"$'
 
