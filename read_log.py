@@ -3,6 +3,22 @@ from datetime import datetime
 
 import pandas as pd
 
+
+def __get_failure_rate(df):
+    """
+    Retrieve the failure rate of an access file.
+    Failure rate is defined as (number of 200 status code & is a bot) / (number of bot requests)
+    """
+
+    # Is the request from a bot?
+    is_bot = df["is_bot"]
+
+    # Is the request a success and from a bot?
+    is_success_and_bot = (df["status_code"] == "200") & is_bot
+
+    return len(df[is_success_and_bot]) / len(df[is_bot])
+
+
 methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
 pattern = r'^([\d.]+) - - \[([^]]+)\] "([^"]*)" (\d+) (\d+) "([^"]*)" "([^"]*)" "-"$'
 
